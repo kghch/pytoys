@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <script src="{{static_url('lib/js/jquery.min.js')}}" type='text/javascript'></script>
+    <script src="{{static_url('lib/js/bootstrap.min.js')}}" type='text/javascript'></script>
+    
+    <link href="{{static_url('lib/css/markdown.css')}}" rel="stylesheet">
+    <link href="{{static_url('lib/css/markdown_edit.css')}}" rel="stylesheet">
+    <link href="{{static_url('lib/css/pygments.css')}}" rel="stylesheet">
+  </head>
+  <body class="html-output markdown-body">
+    {% raw html %}
+  </body>
+</html>
