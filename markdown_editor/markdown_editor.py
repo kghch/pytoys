@@ -17,7 +17,9 @@ class Application(tornado.web.Application):
             (r'/preview', PreviewHandler),
             (r'/create', CreateHandler),
             (r'/save', SaveHandler),
-            (r'/show/preview', ShowPreviewHandler)
+            (r'/showpreview/(\d+)', ShowPreviewHandler),
+            (r'/mydocs', MydocsHandler),
+            (r'/show/(\d+)', ShowByFidHandler)
         ]
 
         settings = dict(
@@ -37,7 +39,6 @@ class HomeHandler(tornado.web.RequestHandler):
         else:
             self.render('home.html', fid='0', title='untitled', raw='', html='')
 
-
 class PreviewHandler(tornado.web.RequestHandler):
     def post(self):
         raw_text = self.request.body
@@ -53,31 +54,42 @@ class CreateHandler(tornado.web.RequestHandler):
         else:
             doc_id = 1
         self.write({'fid':str(doc_id), 'title': 'untitled'})
-        
+
 class SaveHandler(tornado.web.RequestHandler):
     def post(self):
         data = json.loads(self.request.body)
         doc = db.get("SELECT * FROM doc WHERE fid=%s", int(data['fid']))
         if doc:
             fid = doc['fid']
-            db.execute("UPDATE doc set raw=%s, html=%s, updated=UTC_TIMESTAMP()", data['raw'], data['html'])
+            db.execute("UPDATE doc set raw=%s, html=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], int(fid))
         else:
             fid = int(data['fid'])
             db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, data['title'], data['raw'], data['html'])
         self.write(str(fid))
 
 class ShowPreviewHandler(tornado.web.RequestHandler):
+    def get(self, fid):
+        doc = db.get("SELECT * FROM doc WHERE fid=%s", fid)
+        self.render('preview.html', fid=fid, html=doc['html'], title=doc['title'])
+
+class MydocsHandler(tornado.web.RequestHandler):
     def get(self):
-        fid = self.get_argument('fid')
-        doc = db.get("SELECT * FROM doc WHERE fid=%s", int(fid))
-        self.render('preview.html', html=doc['html'], title=doc['title'])
+        docs = db.query("SELECT * FROM doc ORDER BY created DESC")
+        for doc in docs:
+            doc['updated'] = doc['updated'].strftime("%Y-%m-%d %H:%M:%S")
+            doc['created'] = doc['created'].strftime("%Y-%m-%d %H:%M:%S")
+        self.write({"docs": docs})
+
+class ShowByFidHandler(tornado.web.RequestHandler):
+    def get(self, fid):
+        doc = db.get("SELECT * FROM doc WHERE fid=%s", fid)
+        self.render('home.html', fid=fid, title=doc['title'], raw=doc['raw'], html=doc['html'])
 
 
 def main():
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(9876)
     tornado.ioloop.IOLoop.current().start()
-
 
 if __name__ == "__main__":
     main()

@@ -28,11 +28,23 @@ function createDoc() {
 
 function preview() {
   fid = $('#doc_id').html();
-  window.location.replace('/show/preview?fid=' + fid)
+  window.location.replace('/showpreview/' + fid)
 }
 
-function mydocs() {
-  
+function render_data(data) {
+  html = '<table id="pagination_table"class="table"><thead style="color:red;"><tr><td>Title</td><td>Created Time</td></tr></thead><tbody>'
+  for(var i=0; i<data.length; i++) {
+    html += '<tr><td>';
+    html += '<a href="/show/'
+    html += data[i]['fid']
+    html += '">'
+    html += data[i]['title'];
+    html += '</a></td><td>';
+    html += data[i]['created'];
+    html += '</td></tr>';
+  }
+  html += '</tbody></table>';
+  return html
 }
 
 $(document).ready(function() {
@@ -55,6 +67,17 @@ $(document).ready(function() {
           e.preventDefault();
 
       }
+  });
+
+  $('#doc_modal').on('click', function() {
+    $.ajax({
+      type: 'GET',
+      url: '/mydocs',
+      success: function(data) {
+        $('#modal_body').html(render_data(data['docs']));
+        $('#pagination_table').DataTable();
+      }
+    });
   });
 
 });
