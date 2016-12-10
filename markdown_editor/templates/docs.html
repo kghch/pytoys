@@ -1,0 +1,8 @@
+<table id="pagination_table" class="table">
+    <thead style="color:red;"><tr><td>Title</td><td>Created Time</td></tr></thead>
+    <tbody>
+        {% for doc in docs %}
+        <tr><td><a href="/show/{{ doc['fid'] }}">{{ doc['title'] }}</a></td> <td>{{ doc['created'] }}</td></tr>
+        {% end %}
+    </tbody>
+</table>

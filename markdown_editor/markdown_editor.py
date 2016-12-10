@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import tornado
 import markdown
 import os
@@ -5,6 +6,7 @@ import tornado.web
 import tornado.httpserver
 import torndb
 import json
+import re
 
 MARKDOWN_EXT = ('codehilite', 'extra')
 
@@ -42,8 +44,9 @@ class HomeHandler(tornado.web.RequestHandler):
 class PreviewHandler(tornado.web.RequestHandler):
     def post(self):
         raw_text = self.request.body
+        unicode_raw_text = unicode(raw_text, "utf-8")
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
-        html_text = md.reset().convert(raw_text)
+        html_text = md.reset().convert(unicode_raw_text)
         self.write(html_text)
 
 class CreateHandler(tornado.web.RequestHandler):
@@ -59,18 +62,28 @@ class SaveHandler(tornado.web.RequestHandler):
     def post(self):
         data = json.loads(self.request.body)
         doc = db.get("SELECT * FROM doc WHERE fid=%s", int(data['fid']))
+        g = re.search(r"<h[1-6]>[^<]+</h[1-6]>", data['html'])
+        if g:
+            title = g.group(0)[4:-5]
+        else:
+            title = "untitled"
+
         if doc:
             fid = doc['fid']
-            db.execute("UPDATE doc set raw=%s, html=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], int(fid))
+            db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], title, int(fid))
         else:
             fid = int(data['fid'])
-            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, data['title'], data['raw'], data['html'])
-        self.write(str(fid))
+            unicode_raw = unicode(data['raw'], "utf-8")
+            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, unicode_raw, data['html'])
+        self.write({"fid":str(fid), "title": title})
 
 class ShowPreviewHandler(tornado.web.RequestHandler):
     def get(self, fid):
         doc = db.get("SELECT * FROM doc WHERE fid=%s", fid)
-        self.render('preview.html', fid=fid, html=doc['html'], title=doc['title'])
+        if doc:
+            self.render('preview.html', fid=fid, html=doc['html'], title=doc['title'])
+        else:
+            self.render("error.html", error="The page hasn't been developed yet.")
 
 class MydocsHandler(tornado.web.RequestHandler):
     def get(self):
@@ -78,12 +91,16 @@ class MydocsHandler(tornado.web.RequestHandler):
         for doc in docs:
             doc['updated'] = doc['updated'].strftime("%Y-%m-%d %H:%M:%S")
             doc['created'] = doc['created'].strftime("%Y-%m-%d %H:%M:%S")
-        self.write({"docs": docs})
+        table_html = self.render_string("docs.html", docs=docs)
+        self.write(table_html)
 
 class ShowByFidHandler(tornado.web.RequestHandler):
     def get(self, fid):
         doc = db.get("SELECT * FROM doc WHERE fid=%s", fid)
-        self.render('home.html', fid=fid, title=doc['title'], raw=doc['raw'], html=doc['html'])
+        if doc:
+            self.render('home.html', fid=fid, title=doc['title'], raw=doc['raw'], html=doc['html'])
+        else:
+            self.render("error.html", error="The page hasn't been developed yet.")
 
 
 def main():
