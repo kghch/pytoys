@@ -7,8 +7,13 @@ import tornado.httpserver
 import torndb
 import json
 import re
+import inlinecss
+#import syncevernote
 
 MARKDOWN_EXT = ('codehilite', 'extra')
+code_style = """style=\"font-family: 'Source Code Pro',monospace; font-size: inherit; background-color: transparent; \
+white-space: pre-wrap; display: block; background: #f5f5f5; \
+padding: 1.3em 2em; border-radius:4px; color: #333; border: 1px solid #ccc\""""
 
 db = torndb.Connection(host='127.0.0.1:3306', database='docs', user='root', password='123456')
 
@@ -47,6 +52,11 @@ class PreviewHandler(tornado.web.RequestHandler):
         unicode_raw_text = unicode(raw_text, "utf-8")
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
         html_text = md.reset().convert(unicode_raw_text)
+        html_text = html_text.replace(u'class="codehilite"', code_style)
+
+        for clsname, clsstyle in inlinecss.css.items():
+            html_text = html_text.replace(clsname, "style=" + '"' + clsstyle + '"')
+        print html_text
         self.write(html_text)
 
 class CreateHandler(tornado.web.RequestHandler):
@@ -67,14 +77,12 @@ class SaveHandler(tornado.web.RequestHandler):
             title = g.group(0)[4:-5]
         else:
             title = "untitled"
-
         if doc:
             fid = doc['fid']
             db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], title, int(fid))
         else:
             fid = int(data['fid'])
-            unicode_raw = unicode(data['raw'], "utf-8")
-            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, unicode_raw, data['html'])
+            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, data['raw'], data['html'])
         self.write({"fid":str(fid), "title": title})
 
 class ShowPreviewHandler(tornado.web.RequestHandler):
@@ -101,7 +109,6 @@ class ShowByFidHandler(tornado.web.RequestHandler):
             self.render('home.html', fid=fid, title=doc['title'], raw=doc['raw'], html=doc['html'])
         else:
             self.render("error.html", error="The page hasn't been developed yet.")
-
 
 def main():
     http_server = tornado.httpserver.HTTPServer(Application())

@@ -34,7 +34,6 @@ $(document).ready(function() {
   $(document).on('keydown', function(e){
       if(e.ctrlKey && e.which === 83){ // Check for the Ctrl key being pressed, and if the key = [S] (83)
           raw = $('#raw').val();
-          console.log(raw);
           html = $('#mirror').html();
           fid = $('#doc_id').html();
           $.ajax({
