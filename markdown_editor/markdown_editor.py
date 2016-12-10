@@ -12,7 +12,7 @@ import inlinecss
 
 MARKDOWN_EXT = ('codehilite', 'extra')
 code_style = """style=\" font-size: inherit; background-color: transparent; \
-padding: 2px; white-space: pre-wrap; display: block; background: #f5f5f5; \
+padding: 1.3em 2em; white-space: pre-wrap; display: block; background: #f5f5f5; \
 border-radius:4px; color: #333; border: 1px solid #ccc\""""
 
 db = torndb.Connection(host='127.0.0.1:3306', database='docs', user='root', password='123456')
