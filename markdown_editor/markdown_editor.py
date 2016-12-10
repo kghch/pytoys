@@ -11,9 +11,9 @@ import inlinecss
 #import syncevernote
 
 MARKDOWN_EXT = ('codehilite', 'extra')
-code_style = """style=\"font-family: 'Source Code Pro',monospace; font-size: inherit; background-color: transparent; \
-white-space: pre-wrap; display: block; background: #f5f5f5; \
-padding: 1.3em 2em; border-radius:4px; color: #333; border: 1px solid #ccc\""""
+code_style = """style=\" font-size: inherit; background-color: transparent; \
+padding: 2px; white-space: pre-wrap; display: block; background: #f5f5f5; \
+border-radius:4px; color: #333; border: 1px solid #ccc\""""
 
 db = torndb.Connection(host='127.0.0.1:3306', database='docs', user='root', password='123456')
 
@@ -30,11 +30,11 @@ class Application(tornado.web.Application):
         ]
 
         settings = dict(
-            editor_title = "KGHCH markdown",
-            template_path = os.path.join(os.path.dirname(__file__), "templates"),
-            static_path = os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies = False,
-            debug = True
+            editor_title="KGHCH markdown",
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            xsrf_cookies=False,
+            debug=True
         )
         super(Application, self).__init__(handlers, **settings)
 
@@ -52,11 +52,27 @@ class PreviewHandler(tornado.web.RequestHandler):
         unicode_raw_text = unicode(raw_text, "utf-8")
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
         html_text = md.reset().convert(unicode_raw_text)
+
+        #for codes
         html_text = html_text.replace(u'class="codehilite"', code_style)
 
+        #for pygment.css
         for clsname, clsstyle in inlinecss.css.items():
             html_text = html_text.replace(clsname, "style=" + '"' + clsstyle + '"')
-        print html_text
+        #remove useless class
+        html_text = re.sub('class="[^"]+"', "", html_text)
+
+        #for blockquote
+        blockquote_style = """style='border-left:4px solid #DDD;padding:0 15px;color:#777'"""
+        html_text = html_text.replace("<blockquote>", "<blockquote " + blockquote_style + ">")
+
+        #for table
+        table_style = """style='border-collapse:collapse;border:1px solid grey;'"""
+        tdh_style = """style='border:1px solid grey;' """
+        html_text = html_text.replace("<table>", "<table " + table_style + ">")
+        html_text = html_text.replace("<td", "<td " + tdh_style)
+        html_text = re.sub('<th(\s)+', "<th " + tdh_style, html_text)
+
         self.write(html_text)
 
 class CreateHandler(tornado.web.RequestHandler):
@@ -80,9 +96,12 @@ class SaveHandler(tornado.web.RequestHandler):
         if doc:
             fid = doc['fid']
             db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], title, int(fid))
+            # TODO: update the note in Evernote
         else:
             fid = int(data['fid'])
-            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, data['raw'], data['html'])
+            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""",
+                       fid, title, data['raw'], data['html'])
+            # TODO:insert the note to Evernote
         self.write({"fid":str(fid), "title": title})
 
 class ShowPreviewHandler(tornado.web.RequestHandler):
