@@ -1,15 +1,16 @@
 from evernote.api.client import EvernoteClient
 import evernote.edam.type.ttypes as Types
 
-#dev_token = "S=s1:U=932b6:E=1603e3aa498:C=158e6897570:P=1cd:A=en-devtoken:V=2:H=feef61a985db7ba0ae3d47477daf7940"
 
 class Note(object):
     def __init__(self):
-        self.dev_token = "S=s1:U=932b6:E=1603e3aa498:C=158e6897570:P=1cd:A=en-devtoken:V=2:H=feef61a985db7ba0ae3d47477daf7940"
-        self.client = EvernoteClient(token=self.dev_token)
+        # consumer_key = 'wanghan0307171', consumer_secret = '7ce3360054d137a3'
+        self.dev_token = "sandbox key"
+        self.app_token = "production key"
+        self.client = EvernoteClient(token=self.app_token, sandbox=False)
         self.noteStore = self.client.get_note_store()
 
-    def createEvernote(self, notebook_guid, title, html):
+    def createEvernote(self, title, html, notebook_guid='d7900482-362b-4424-a698-99c1833fb81c'):
         note = Types.Note()
         #note.notebookGUID = 'd7900482-362b-4424-a698-99c1833fb81c'
         note.notebookGuid = notebook_guid
@@ -35,9 +36,8 @@ class Note(object):
 def test():
     html = """This is evening.
     """
-
-    guid = "d7900482-362b-4424-a698-99c1833fb81c"
-    note = Note().createEvernote(guid, "evening test", html)
+    #guid = "d7900482-362b-4424-a698-99c1833fb81c"
+    note = Note().createEvernote("evening test", html)
     print note.guid
     html_new = """
     <blockquote style="border-left:4px solid #DDD;padding:0 15px;color:#777">
@@ -46,4 +46,6 @@ def test():
     """
     Note().updateNote(note.guid, 'Evening Update test', html_new)
 
-test()
+
+if __name__ == "__main__":
+    test()

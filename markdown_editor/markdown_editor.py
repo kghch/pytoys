@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import tornado
-import markdown
-import os
 import tornado.web
 import tornado.httpserver
 import torndb
+import markdown
+import os
 import json
 import re
 import inlinecss
-#import syncevernote
+import syncevernote
 
 MARKDOWN_EXT = ('codehilite', 'extra')
 code_style = """style=\" font-size: inherit; background-color: transparent; \
@@ -16,6 +16,7 @@ padding: 1.3em 2em; white-space: pre-wrap; display: block; background: #f5f5f5; 
 border-radius:4px; color: #333; border: 1px solid #ccc\""""
 
 db = torndb.Connection(host='127.0.0.1:3306', database='docs', user='root', password='123456')
+
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -38,6 +39,7 @@ class Application(tornado.web.Application):
         )
         super(Application, self).__init__(handlers, **settings)
 
+
 class HomeHandler(tornado.web.RequestHandler):
     def get(self):
         latest = db.get("SELECT * FROM doc ORDER BY updated DESC LIMIT 1")
@@ -46,6 +48,7 @@ class HomeHandler(tornado.web.RequestHandler):
         else:
             self.render('home.html', fid='0', title='untitled', raw='', html='')
 
+
 class PreviewHandler(tornado.web.RequestHandler):
     def post(self):
         raw_text = self.request.body
@@ -53,20 +56,20 @@ class PreviewHandler(tornado.web.RequestHandler):
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
         html_text = md.reset().convert(unicode_raw_text)
 
-        #for codes
+        # for codes
         html_text = html_text.replace(u'class="codehilite"', code_style)
 
-        #for pygment.css
+        # for pygment.css
         for clsname, clsstyle in inlinecss.css.items():
             html_text = html_text.replace(clsname, "style=" + '"' + clsstyle + '"')
-        #remove useless class
+        # remove useless class
         html_text = re.sub('class="[^"]+"', "", html_text)
 
-        #for blockquote
+        # for blockquote
         blockquote_style = """style='border-left:4px solid #DDD;padding:0 15px;color:#777'"""
         html_text = html_text.replace("<blockquote>", "<blockquote " + blockquote_style + ">")
 
-        #for table
+        # for table
         table_style = """style='border-collapse:collapse;border:1px solid grey;'"""
         tdh_style = """style='border:1px solid grey;' """
         html_text = html_text.replace("<table>", "<table " + table_style + ">")
@@ -84,6 +87,7 @@ class CreateHandler(tornado.web.RequestHandler):
             doc_id = 1
         self.write({'fid':str(doc_id), 'title': 'untitled'})
 
+
 class SaveHandler(tornado.web.RequestHandler):
     def post(self):
         data = json.loads(self.request.body)
@@ -95,13 +99,43 @@ class SaveHandler(tornado.web.RequestHandler):
             title = "untitled"
         if doc:
             fid = doc['fid']
-            db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", data['raw'], data['html'], title, int(fid))
-            # TODO: update the note in Evernote
+            sync = data['sync']
+            if sync == 'y' and doc['note_guid']:
+                try:
+                    note = syncevernote.Note().updateNote(doc['note_guid'], title, data['html'])
+                except:
+                    print "Update Evernote error"
+                else:
+                    db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP(), note_guid=%s WHERE fid=%s", \
+                               data['raw'], data['html'], title, note.guid, int(fid))
+                    print "Update success."
+            elif sync == 'y':
+                try:
+                    note = syncevernote.Note().createEvernote(title, data['html'])
+                except:
+                    print "Create Evernote failed."
+                else:
+                    db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP(), note_guid=%s WHERE fid=%s", \
+                                data['raw'], data['html'], title, note.guid, int(fid))
+                    print "Create Success."
+            else:
+                db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP() WHERE fid=%s", \
+                           data['raw'], data['html'], title, int(fid))
+
         else:
             fid = int(data['fid'])
-            db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""",
-                       fid, title, data['raw'], data['html'])
-            # TODO:insert the note to Evernote
+            sync = data['sync']
+            if sync == 'n':
+                db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, data['raw'], data['html'])
+            else:
+                try:
+                    note = syncevernote.Note().createEvernote(title, data['html'])
+                except:
+                    print "Create Evernote failed."
+                else:
+                    db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated, note_guid) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP(), %s)""", fid, title, data['raw'], data['html'], note.guid)
+                    print "Create Success."
+
         self.write({"fid":str(fid), "title": title})
 
 class ShowPreviewHandler(tornado.web.RequestHandler):
@@ -112,6 +146,7 @@ class ShowPreviewHandler(tornado.web.RequestHandler):
         else:
             self.render("error.html", error="The page hasn't been developed yet.")
 
+
 class MydocsHandler(tornado.web.RequestHandler):
     def get(self):
         docs = db.query("SELECT * FROM doc ORDER BY created DESC")
@@ -121,6 +156,7 @@ class MydocsHandler(tornado.web.RequestHandler):
         table_html = self.render_string("docs.html", docs=docs)
         self.write(table_html)
 
+
 class ShowByFidHandler(tornado.web.RequestHandler):
     def get(self, fid):
         doc = db.get("SELECT * FROM doc WHERE fid=%s", fid)
@@ -128,6 +164,7 @@ class ShowByFidHandler(tornado.web.RequestHandler):
             self.render('home.html', fid=fid, title=doc['title'], raw=doc['raw'], html=doc['html'])
         else:
             self.render("error.html", error="The page hasn't been developed yet.")
+
 
 def main():
     http_server = tornado.httpserver.HTTPServer(Application())

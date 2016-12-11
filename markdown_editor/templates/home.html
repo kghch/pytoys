@@ -18,6 +18,10 @@
     <p id='doc_id' style="display:none">{{fid}}</p>
     <div class='header' >
       <input type='button' id="doc_modal" data-toggle="modal" data-target="#all_doc" value='mydocs' style="float: left">
+      <select id="sync" style="float: left">
+        <option value="y">sync</option>
+        <option value="n">not sync</option>
+      </select>
       <input type='button' onclick="preview();" value='preview' style='float:right;'/><input type='button' onclick="createDoc();" value='new one' style='float:right;'>
     </div>
 

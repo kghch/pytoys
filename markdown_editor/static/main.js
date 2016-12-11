@@ -36,10 +36,11 @@ $(document).ready(function() {
           raw = $('#raw').val();
           html = $('#mirror').html();
           fid = $('#doc_id').html();
+          sync = $("#sync").val();
           $.ajax({
             type: 'POST',
             url: '/save',
-            data: JSON.stringify({fid: fid, raw: raw, html: html}),
+            data: JSON.stringify({fid: fid, raw: raw, html: html, sync: sync}),
             contentType: 'json',
             success: function(data) {
                 document.title = data['title'];
