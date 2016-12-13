@@ -20,7 +20,7 @@
       <input type='button' id="doc_modal" data-toggle="modal" data-target="#all_doc" value='mydocs' style="float: left">
       <select id="sync" style="float: left">
         <option value="y">sync</option>
-        <option value="n">not sync</option>
+        <option value="n" selected="selected">not sync</option>
       </select>
       <input type='button' onclick="preview();" value='preview' style='float:right;'/><input type='button' onclick="createDoc();" value='new one' style='float:right;'>
     </div>
@@ -29,7 +29,7 @@
     <div id="all_doc" class="modal fade" role="dialog">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title">All docs</h4></div>
+          <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h3 class="modal-title">All my notes</h3></div>
           <div class="modal-body"><p id="modal_body">Some text in the modal.</p></div>
           <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
         </div>
