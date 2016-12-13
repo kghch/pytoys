@@ -1,10 +1,9 @@
 
 function updatePreview() {
-  update_text = $('#raw').val();
   $.ajax({
     type: 'POST',
     url: '/preview',
-    data: update_text,
+    data: myCodeMirror.getValue(),
     contentType: 'text/plain',
     success: function(data) {
       $('#mirror').html(data);
@@ -33,7 +32,7 @@ function preview() {
 $(document).ready(function() {
   $(document).on('keydown', function(e){
       if(e.ctrlKey && e.which === 83){ // Check for the Ctrl key being pressed, and if the key = [S] (83)
-          raw = $('#raw').val();
+          raw = myCodeMirror.getValue(),
           html = $('#mirror').html();
           fid = $('#doc_id').html();
           sync = $("#sync").val();
@@ -51,6 +50,15 @@ $(document).ready(function() {
 
       }
   });
+
+  myCodeMirror = CodeMirror.fromTextArea(document.getElementById('raw'), {
+        value: "",
+        mode: {name:"markdown"},
+        indentUnit: "4",
+        theme: "neat"
+  });
+
+  myCodeMirror.on("change", function(instance, changeObj) {updatePreview();});
 
   $('#doc_modal').on('click', function() {
     $.ajax({
