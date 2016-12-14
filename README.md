@@ -1,4 +1,3 @@
-# za7za8
 
 ## lru_cache
 shadowsocks-python版本中LRUCache的复制。
