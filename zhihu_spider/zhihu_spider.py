@@ -70,12 +70,16 @@ def each_answer(url):
     r = session.get(url, headers=headers, cookies=cookies_config)
     html_doc = r.content
     soup = BeautifulSoup(html_doc, "html.parser")
-    ans = soup.find("div", {"class": "zm-item-rich-text expandable js-collapse-body"}).find("div", {"class": "zm-editable-content clearfix"})
-    ans = str(ans)
-    ans = re.sub(r'src="//[^"]+"', '', ans)
-    ans = re.sub(r'data-actualsrc', 'src', ans)
-
-    return ans
+    try:
+        ans = soup.find("div", {"class": "zm-item-rich-text expandable js-collapse-body"}).find("div", {"class": "zm-editable-content clearfix"})
+    except AttributeError:
+        print "Can't parse answer from " + url
+        return "empty"
+    else:
+        ans = str(ans)
+        ans = re.sub(r'src="//[^"]+"', '', ans)
+        ans = re.sub(r'data-actualsrc', 'src', ans)
+        return ans
 
 
 def main():
@@ -84,15 +88,18 @@ def main():
     num, posts = user_posts(user, 'answers')
     print ("答案数： %s") % num
     answers_url = []
+    success_num = 0
     for post in posts:
         url = 'https://www.zhihu.com' + post.find('a').get('href')
         answers_url.append(url)
         file_name = url[url.find('answer/')+7:]
 
         ans_html = each_answer(url)
-        with open('kmlover/' + file_name + '.html', 'w+') as f:
-            f.write(ans_html)
-
+        if ans_html != "empty":
+            success_num += 1
+            with open('kmlover/' + file_name + '.html', 'w+') as f:
+                f.write(ans_html)
+    print ("抓取数： %s") % success_num
 
 
 def test():
