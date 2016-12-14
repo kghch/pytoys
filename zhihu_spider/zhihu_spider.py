@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 import os
 import time
 import ConfigParser
@@ -32,7 +33,7 @@ def login():
 def scroll_to_bottom(start):
     js = "window.scrollTo(0, document.body.scrollHeight);"
     driver.execute_script(js)
-    time.sleep(0.5)
+    time.sleep(0.7)
 
 
 def user_posts(username, opt):
@@ -62,7 +63,9 @@ def user_posts(username, opt):
 
     posts = []
     for item in content_items:
-        posts.append(item.find("h2", {"class": "ContentItem-title"}))
+        e_item = item.find("h2", {"class": "ContentItem-title"})
+        print e_item
+        posts.append(e_item)
     return len(content_items), posts
 
 
@@ -80,6 +83,9 @@ def each_answer(url):
         ans = str(ans)
         ans = re.sub(r'src="//[^"]+"', '', ans)
         ans = re.sub(r'data-actualsrc', 'src', ans)
+        ans = ans.replace('href="//link.zhihu.com/?target=', 'href="')
+        ans = ans.replace('https%3A', 'https:')
+        ans = ans.replace('http%3A', 'http:')
         return ans
 
 
@@ -93,13 +99,18 @@ def do_spider(user):
     success_num = 0
     for post in posts:
         url = 'https://www.zhihu.com' + post.find('a').get('href')
+        question = post.find('a').getText()
         answers_url.append(url)
         file_name = url[url.find('answer/')+7:]
 
         ans_html = each_answer(url)
         if ans_html != "empty":
             success_num += 1
-            with open(user + '/' + file_name + '.html', 'w+') as f:
+            title = '<h2>Question:  ' + question + '<br/><br/>'
+            title = title.encode("utf-8")
+            with open(user + '/' + file_name + '.html', 'a+') as f:
+                f.write(title)
+                # print type(ans_html)
                 f.write(ans_html)
     print ("抓取数： %s") % success_num
 
