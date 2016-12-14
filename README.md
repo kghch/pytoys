@@ -30,7 +30,7 @@ TODO：
 *但是有一个问题：poll的方式改成GET后，会发生不可思议的问题，改回POST就OK。* 可能理解仍不够深刻。需要多看些处理long poll的代码。
 
 ## 知乎爬虫
-爬某个用户的所有回答，写入本地。
+爬某个用户(user)的所有回答，写入./(user)/文件夹下。
 
 requirements:
 - selenium
