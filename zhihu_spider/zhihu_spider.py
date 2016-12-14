@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import ConfigParser
 import re
@@ -17,7 +18,7 @@ headers = {
 for key, value in enumerate(headers):
     webdriver.DesiredCapabilities.PHANTOMJS['phantomjs.page.customHeaders.{}'.format(key)] = value
 
-driver = webdriver.PhantomJS(executable_path=r'E:\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe')
+driver = webdriver.PhantomJS(executable_path=r'D:\Downloads\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe')
 
 cf = ConfigParser.ConfigParser()
 cf.read('zhihu_config.ini')
@@ -82,9 +83,10 @@ def each_answer(url):
         return ans
 
 
-def main():
+def do_spider(user):
     login()
-    user = "kmlover"
+    if not os.path.exists(user):
+        os.makedirs(user)
     num, posts = user_posts(user, 'answers')
     print ("答案数： %s") % num
     answers_url = []
@@ -97,16 +99,10 @@ def main():
         ans_html = each_answer(url)
         if ans_html != "empty":
             success_num += 1
-            with open('kmlover/' + file_name + '.html', 'w+') as f:
+            with open(user + '/' + file_name + '.html', 'w+') as f:
                 f.write(ans_html)
     print ("抓取数： %s") % success_num
 
 
-def test():
-    login()
-    ans = each_answer('https://www.zhihu.com/question/22306426/answer/133997276')
-    print ans
-
 if __name__ == "__main__":
-    main()
-    #test()
+    do_spider('dongweiming')
