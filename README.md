@@ -15,12 +15,13 @@ markdown编辑器web端。
 2. 可以选择同步到印象笔记（目前只是沙箱环境）可以选择同步到印象笔记（目前只是沙箱环境）；
 
 requirements:
-- tornado
+- tornado(没用到tornado的异步功能)
+- torndb
 - markdown
+- Evernote Python SDK
 
 TODO：
-- 有稳定服务器后，激活API key，与真正印象笔记同步；
-- 样式；
+- 激活API key，与真正印象笔记同步；
 - 完善异常处理；
 
 ## A chatdemo simplified from tornado chatdemo
