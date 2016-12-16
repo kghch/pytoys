@@ -19,7 +19,7 @@ headers = {
 for key, value in enumerate(headers):
     webdriver.DesiredCapabilities.PHANTOMJS['phantomjs.page.customHeaders.{}'.format(key)] = value
 
-driver = webdriver.PhantomJS(executable_path=r'D:\Downloads\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe')
+driver = webdriver.PhantomJS(executable_path=r'E:\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe')
 
 cf = ConfigParser.ConfigParser()
 cf.read('zhihu_config.ini')
@@ -33,7 +33,7 @@ def login():
 def scroll_to_bottom(start):
     js = "window.scrollTo(0, document.body.scrollHeight);"
     driver.execute_script(js)
-    time.sleep(0.7)
+    time.sleep(0.8)
 
 
 def user_posts(username, opt):
@@ -44,7 +44,7 @@ def user_posts(username, opt):
         url = 'https://www.zhihu.com/people/' + username + '/answers'
     else:
         return
-    print url
+    print 'Starting spying from the root: ' + url
     driver.get(url)
     old = len(driver.page_source)
     while True:
@@ -64,7 +64,6 @@ def user_posts(username, opt):
     posts = []
     for item in content_items:
         e_item = item.find("h2", {"class": "ContentItem-title"})
-        print e_item
         posts.append(e_item)
     return len(content_items), posts
 
@@ -77,7 +76,7 @@ def each_answer(url):
     try:
         ans = soup.find("div", {"class": "zm-item-rich-text expandable js-collapse-body"}).find("div", {"class": "zm-editable-content clearfix"})
     except AttributeError:
-        print "Can't parse answer from " + url
+        print "[Warning] Can't parse answer from " + url
         return "empty"
     else:
         ans = str(ans)
@@ -91,29 +90,53 @@ def each_answer(url):
 
 def do_spider(user):
     login()
+    subdir_name = user + '/' + user + '_answers'
     if not os.path.exists(user):
         os.makedirs(user)
+        if not os.path.exists(subdir_name):
+            os.makedirs(subdir_name)
     num, posts = user_posts(user, 'answers')
     print ("答案数： %s") % num
+
+    title = ('用户%s的答案数%s：') % (user, num)
+
+    index_file = user + '/' + 'index.html'
+    with open(index_file, 'a+') as f:
+        f.write(title)
+
     answers_url = []
     success_num = 0
     for post in posts:
+        time.sleep(0.4)
         url = 'https://www.zhihu.com' + post.find('a').get('href')
+        print url
         question = post.find('a').getText()
         answers_url.append(url)
         file_name = url[url.find('answer/')+7:]
-
+        file_pos = subdir_name + '/' + file_name + '.html'
         ans_html = each_answer(url)
         if ans_html != "empty":
             success_num += 1
-            title = '<h2>Question:  ' + question + '<br/><br/>'
-            title = title.encode("utf-8")
-            with open(user + '/' + file_name + '.html', 'a+') as f:
-                f.write(title)
-                # print type(ans_html)
+            question_link = '<h3><a href="' + user + '_answers/' + file_name + '.html' +'">Question:  ' + question + '</a></h3><br/>'
+            question_title = '<h3>' + question + '</h3><br/>'
+            with open(index_file, 'a+') as f:
+                f.write(question_link.encode("utf-8"))
+
+            style = """
+            <!DOCTYPE html>
+            <head>
+            <link rel="stylesheet" type="text/css" href="../../z.css" />
+            </head>
+            """
+            with open(file_pos, 'a+') as f:
+                f.write(question_title.encode("utf-8"))
+                f.write(style.encode("utf-8"))
                 f.write(ans_html)
     print ("抓取数： %s") % success_num
 
+    ending = ('抓取数: %s') % success_num
+    with open(index_file, 'a+') as f:
+        f.write(ending)
 
 if __name__ == "__main__":
-    do_spider('dongweiming')
+    do_spider('kmlover')
