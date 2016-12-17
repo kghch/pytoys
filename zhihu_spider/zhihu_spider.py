@@ -98,10 +98,19 @@ def do_spider(user):
     num, posts = user_posts(user, 'answers')
     print ("答案数： %s") % num
 
+    style = """
+            <!DOCTYPE html>
+            <head>
+            <style>
+                body{padding: 50px;}
+            </style>
+            </head>
+    """
     title = ('用户%s的答案数%s：') % (user, num)
 
     index_file = user + '/' + 'index.html'
     with open(index_file, 'a+') as f:
+        f.write(style.encode("utf-8"))
         f.write(title)
 
     answers_url = []
@@ -139,4 +148,4 @@ def do_spider(user):
         f.write(ending)
 
 if __name__ == "__main__":
-    do_spider('kmlover')
+    do_spider('sunny-z-96')
