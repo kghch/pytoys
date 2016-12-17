@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import io
+
 import os
+import shutil
 import time
 import ConfigParser
 import re
@@ -91,21 +92,42 @@ def each_answer(url):
 def do_spider(user):
     login()
     subdir_name = user + '/' + user + '_answers'
-    if not os.path.exists(user):
-        os.makedirs(user)
-        if not os.path.exists(subdir_name):
-            os.makedirs(subdir_name)
-    num, posts = user_posts(user, 'answers')
-    print ("答案数： %s") % num
+    if os.path.exists(user):
+        print "Deleting old %s folder" % user
+        shutil.rmtree(user)
 
-    style = """
-            <!DOCTYPE html>
-            <head>
-            <style>
-                body{padding: 50px;}
-            </style>
-            </head>
-    """
+    os.makedirs(user)
+    if not os.path.exists(subdir_name):
+        os.makedirs(subdir_name)
+
+    if not os.path.exists('cache/' + user):
+        if not os.path.exists('cache'):
+            os.makedirs('cache')
+        num, posts = user_posts(user, 'answers')
+        print ("答案数： %s") % num
+        urls = []
+        questions = []
+        with open('cache/' + user, 'a+') as f:
+            for post in posts:
+                url = 'https://www.zhihu.com' + post.find('a').get('href')
+                question = post.find('a').getText()
+                urls.append(url)
+                questions.append(question)
+                f.write(question.encode("utf-8"))
+                f.write('\n')
+                f.write(url.encode("utf-8"))
+                f.write('\n')
+    else:
+        # read answers from cache
+        with open('cache/' + user, 'r') as f:
+            lines = f.readlines()
+            questions = lines[0::2]
+            urls = lines[1::2]
+            num = len(urls)
+        print "Using cache..."
+        print ("答案数： %s") % num
+
+    style = """<!DOCTYPE html><head><style>body{padding: 50px;}</style></head>"""
     title = ('用户%s的答案数%s：') % (user, num)
 
     index_file = user + '/' + 'index.html'
@@ -115,11 +137,12 @@ def do_spider(user):
 
     answers_url = []
     success_num = 0
-    for post in posts:
+
+    for i in range(num):
         time.sleep(0.4)
-        url = 'https://www.zhihu.com' + post.find('a').get('href')
+        url = urls[i]
         print url
-        question = post.find('a').getText()
+        question = questions[i]
         answers_url.append(url)
         file_name = url[url.find('answer/')+7:]
         file_pos = subdir_name + '/' + file_name + '.html'
@@ -131,12 +154,7 @@ def do_spider(user):
             with open(index_file, 'a+') as f:
                 f.write(question_link.encode("utf-8"))
 
-            style = """
-            <!DOCTYPE html>
-            <head>
-            <link rel="stylesheet" type="text/css" href="../../z.css" />
-            </head>
-            """
+            style = """<!DOCTYPE html><head><link rel="stylesheet" type="text/css" href="../../z.css" /></head>"""
             with open(file_pos, 'a+') as f:
                 f.write(question_title.encode("utf-8"))
                 f.write(style.encode("utf-8"))
@@ -148,4 +166,4 @@ def do_spider(user):
         f.write(ending)
 
 if __name__ == "__main__":
-    do_spider('sunny-z-96')
+    do_spider('qcboy')
