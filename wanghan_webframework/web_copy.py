@@ -3,6 +3,9 @@ import logging
 import re
 import types
 import functools
+import threading
+import urlparse
+
 
 logging.getLogger().setLevel('INFO')
 
@@ -10,6 +13,8 @@ _RESPONSE_STATUSES = {
     404: 'Not Found',
     405: 'Method Not Allowed'
 }
+
+ctx = threading.local()
 
 class HTTPError(Exception):
     def __init__(self, code):
@@ -20,6 +25,7 @@ class HTTPError(Exception):
         return self.status
 
     __repr__ = __str__
+
 
 class Template(object):
     def __init__(self, template_name, **kwargs):
@@ -56,6 +62,7 @@ def get(path):
         return func
     return _decorator
 
+
 def post(path):
     def _decorator(func):
         func.web_route = path
@@ -63,10 +70,28 @@ def post(path):
         return func
     return _decorator
 
+
 class Request(object):
     def __init__(self, env):
+        self.env = env
         self.path_info = env['PATH_INFO']
         self.request_method = env['REQUEST_METHOD']
+
+    def _get_raw_input(self):
+        request_body_size = int(self.env.get('CONTENT_LENGTH', 0))
+        request_body = self.env['wsgi.input'].read(request_body_size)
+        res = urlparse.parse_qs(request_body)
+        return res
+
+    def input(self, **kwargs):
+        raw = self._get_raw_input()
+        res = dict()
+        for k, v in kwargs.iteritems():
+            if raw.get(k):
+                res[k] = raw.get(k)[0]
+            else:
+                res[k] = v
+        return res
 
 
 class Route(object):
@@ -111,7 +136,7 @@ class WSGIApplication(object):
         self._template_engine = engine
 
     def add_module(self, module):
-        if type(module) != types.ModuleType:
+        if not isinstance(module, types.ModuleType):
             logging.warning("%s is not a module" % module)
             return
 
@@ -155,16 +180,17 @@ class WSGIApplication(object):
 
         def wsgi(env, start_response):
             request = Request(env)
-
+            ctx.request = request
             try:
                 r = fn_route(request)
                 r = self._template_engine(r.template_name, r.model)
-
                 start_response('200 OK', [('Content-Type', 'text/html; charset=utf-8')])
                 return r
             except HTTPError, e:
                 start_response(e.status, [('Content-Type', 'text/html; charset=utf-8')])
                 return [e.status]
+            finally:
+                del ctx.request
 
         return wsgi
 

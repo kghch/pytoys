@@ -1,4 +1,4 @@
-from web_copy import get, view
+from web_copy import get, post, view, ctx
 
 
 @get('/')
@@ -21,7 +21,13 @@ def Another():
     return dict(names=names)
 
 @view('/student.html')
-@get('/student/<studentid>')
-def Student(sid):
-    str = 'This is student %s' % sid
+@post('/student')
+def Student():
+
+    i = ctx.request.input(name='Me', sex='M', noexist='hhh')
+    print i.get('name')
+    print i.get('sex')
+    print i.get('noexist')
+    str = 'This is student'
     return dict(title='Student Page', str=str)
+
