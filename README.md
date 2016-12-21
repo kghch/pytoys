@@ -35,9 +35,11 @@ Usage:
 - `executable_path=r'E:\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe'`windows下替换为phantojs.exe的路径，Linux下这个留空即可。
 - zhihu_config.ini文件中对应cookie填好。
 - `do_spider(username)`中的username填写被爬知乎用户的ID。
+- *注意下爬取的时间间隔*，1.4s的时间间隔似乎是可接受的。（至少对800多个答案而言）
 - 执行`python zhihu_spider.py`，将在zhihu_spider目录下创建以该用户ID为名的文件夹，用浏览器打开里面的index.html即可。
 
-[Demo]
+[Demo](http://138.68.18.245:9888/spiderdemo)
+这个demo里面没加样式，实际爬下来之后会有样式，看起来很友好。
 
 requirements:
 - selenium
