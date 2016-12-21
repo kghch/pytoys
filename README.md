@@ -31,8 +31,17 @@ TODO：
 ## 知乎爬虫
 爬某个用户(user)的所有回答，写入./(user)/文件夹下。
 
+Usage:
+- `executable_path=r'E:\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe'`windows下替换为phantojs.exe的路径，Linux下这个留空即可。
+- zhihu_config.ini文件中对应cookie填好。
+- `do_spider(username)`中的username填写被爬知乎用户的ID。
+- 执行`python zhihu_spider.py`，将在zhihu_spider目录下创建以该用户ID为名的文件夹，用浏览器打开里面的index.html即可。
+
+[Demo]
+
 requirements:
 - selenium
+- reqeusts(推荐2.10.0版本，2.12版本会有X509的报错)
 - [PhantomJS](http://phantomjs.org/)
 - bs4。*selenium应该也能解析的，但是我懒得改了。*
 
