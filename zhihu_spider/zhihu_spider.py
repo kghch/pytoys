@@ -36,6 +36,26 @@ def scroll_to_bottom(start):
     driver.execute_script(js)
     time.sleep(0.8)
 
+def get_pages(username):
+    url = 'https://www.zhihu.com/people/' + username + '/answers'
+    print "Spying from url: %s" % url
+    driver.get(url)
+    old = len(driver.page_source)
+    while True:
+        scroll_to_bottom(old)
+        new = len(driver.page_source)
+        if new <= old:
+            break
+        else:
+            old = new
+    return_js = "return document.getElementsByClassName('ContentItem-content is-collapsed')"
+    driver.execute_script(return_js)
+    html_doc = driver.page_source
+    soup = BeautifulSoup(html_doc, "html.parser")
+    pagination = soup.find("div", {"class": "Pagination"})
+    pages = pagination.findAll("button", {"class": "Button PaginationButton Button--plain"})
+    num = len(pages)
+    return pages[num - 2].getText()
 
 def user_posts(username, opt):
     """ 输入username, opt[posts, answers]，返回该user的所有回答/文章 """
@@ -66,7 +86,32 @@ def user_posts(username, opt):
     for item in content_items:
         e_item = item.find("h2", {"class": "ContentItem-title"})
         posts.append(e_item)
+        print e_item
     return len(content_items), posts
+
+
+def user_posts_by_page(username, page_num):
+    url = 'https://www.zhihu.com/people/' + username + '/answers?page=' + str(page_num)
+    driver.get(url)
+    old = len(driver.page_source)
+    while True:
+        scroll_to_bottom(old)
+        new = len(driver.page_source)
+        if new <= old:
+            break
+        else:
+            old = new
+    return_js = "return document.getElementsByClassName('ContentItem-content is-collapsed')"
+    driver.execute_script(return_js)
+    html_doc = driver.page_source
+    soup = BeautifulSoup(html_doc, "html.parser")
+
+    content_items = soup.findAll("div", {"class": "ContentItem"})
+    posts = []
+    for item in content_items:
+        e_item = item.find("h2", {"class": "ContentItem-title"})
+        posts.append(e_item)
+    return posts
 
 
 def each_answer(url):
@@ -135,7 +180,6 @@ def do_spider(user):
         f.write(style.encode("utf-8"))
         f.write(title)
 
-    answers_url = []
     success_num = 0
 
     for i in range(num):
@@ -143,7 +187,6 @@ def do_spider(user):
         url = urls[i]
         print url
         question = questions[i]
-        answers_url.append(url)
         file_name = url[url.find('answer/')+7:]
         file_pos = subdir_name + '/' + file_name + '.html'
         ans_html = each_answer(url)
@@ -165,5 +208,68 @@ def do_spider(user):
     with open(index_file, 'a+') as f:
         f.write(ending)
 
+
+def do_spider_by_page(user):
+    login()
+
+    subdir_name = user + '/' + user + '_answers'
+    if os.path.exists(user):
+        print "Deleting old %s folder" % user
+        shutil.rmtree(user)
+
+    os.makedirs(user)
+    if not os.path.exists(subdir_name):
+        os.makedirs(subdir_name)
+
+    style = """<!DOCTYPE html><head><style>body{padding: 50px;}</style></head>"""
+    title = '用户%s的答案：' % user
+
+    index_file = user + '/' + 'index.html'
+    with open(index_file, 'a+') as f:
+        f.write(style.encode("utf-8"))
+        f.write(title)
+
+    page_num = int(get_pages(user))
+    print "Page: %s" % page_num
+    current_page = 0
+    urls = []
+    questions = []
+    num = 0
+
+    while current_page <= page_num:
+        current_page += 1
+        posts = user_posts_by_page(user, current_page)
+        for post in posts:
+            url = 'https://www.zhihu.com' + post.find('a').get('href')
+            question = post.find('a').getText()
+            urls.append(url)
+            questions.append(question)
+            num += 1
+
+    success_num = 0
+    for i in range(num):
+        time.sleep(1)
+        url = urls[i]
+        print url
+        question = questions[i]
+        file_name = url[url.find('answer/') + 7:]
+        file_pos = subdir_name + '/' + file_name + '.html'
+        ans_html = each_answer(url)
+        if ans_html != "empty":
+            success_num += 1
+            question_link = '<h3><span style="display:inline-block; width: 25px; font-weight:bold;">' + str(success_num) + '</span>&nbsp&nbsp&nbsp&nbsp&nbsp<a href="' + user + '_answers/' + file_name + '.html' + '">Question:  ' + question + '</a></h3><br/>'
+            question_title = '<h3>' + question + '</h3><br/>'
+            with open(index_file, 'a+') as f:
+                f.write(question_link.encode("utf-8"))
+
+            style = """<!DOCTYPE html><head><link rel="stylesheet" type="text/css" href="../../z.css" /></head>"""
+            with open(file_pos, 'a+') as f:
+                f.write(question_title.encode("utf-8"))
+                f.write(style.encode("utf-8"))
+                f.write(ans_html)
+    print '抓取数：%s' % success_num
+
 if __name__ == "__main__":
-    do_spider('qcboy')
+    #do_spider('wang-kai-1-14-3')
+    do_spider_by_page('wang-kai-19-52')
+
