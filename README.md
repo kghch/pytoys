@@ -31,6 +31,10 @@ TODO：
 ## 知乎爬虫
 爬某个用户(user)的所有回答，写入./(user)/文件夹下。
 
+Update:
+我写这个爬虫的时候，知乎用户答案的浏览方式是页面拉到底端后加载（和网页版ins相同），然而今天发现浏览方式变成了分页+页面下拉后加载完此页内容。于是修改了下代码。
+`do_spider_by_page()`是支持目前浏览方式的爬虫函数，主函数里运行的是这个方法。
+
 Usage:
 - `executable_path=r'E:\phantomjs-2.1.1-windows\phantomjs-2.1.1-windows\bin\phantomjs.exe'`windows下替换为phantojs.exe的路径，Linux下这个留空即可。
 - zhihu_config.ini文件中对应cookie填好。
