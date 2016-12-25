@@ -35,15 +35,15 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h3 class="modal-title">All my notes</h3></div>
-          <div class="modal-body"><p id="modal_body">Some text in the modal.</p></div>
+          <div class="modal-body"><p id="modal_body">Loading.</p></div>
           <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
         </div>
       </div>
     </div>
 
     <div class='show' style='height:100%; padding: 10px; padding-top: 50px;'>
-      <div class='left' class="form-control" style='float: left; width: 46%; position: relative; left: 1%; overflow: hidden; height: 850px'>
-        <textarea id='raw' style='width: 98%; height: 98%; resize: none;'">{{raw}}</textarea>
+      <div class='left' class="form-control" style='float: left; width: 46%; position: relative; left: 1%; overflow: hidden; height: 850px; border: ridge;'>
+        <textarea id='raw' style='width: 98%; height: 98%; resize: none; '>{{raw}}</textarea>
       </div>
       <div class='right' style='float: left; width: 49%; position: relative; left: 4%; overflow: hidden; height: 850px'>
         <div id='mirror' class="html-output markdown-body" style="width: 98%; height: 98%; border: ridge; ">{% raw html %}</div>
