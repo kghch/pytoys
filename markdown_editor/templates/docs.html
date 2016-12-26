@@ -1,4 +1,4 @@
 <a class="item"><i class="folder open outline icon"></i></a>
 {% for doc in docs %}
-<a class="item" href="/show/{{ doc['fid'] }}" onclick="loading_tooltip()">{{ doc['title'] }}</a>
+<a class="item"  onclick="loading_tooltip({{ doc['fid'] }})">{{ doc['title'] }}</a>
 {% end %}

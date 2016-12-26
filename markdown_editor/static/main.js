@@ -32,9 +32,11 @@ function sidebar() {
     $('.ui.labeled.icon.sidebar').sidebar('toggle');
 }
 
-function loading_tooltip() {
+function loading_tooltip(fid) {
     $("#sync_tooltip").show();
     $("#sync_tooltip").html('<i class="spinner icon"></i>加载中');
+    window.location.href = '/show/' + fid
+
 }
 
 $(document).ready(function() {
