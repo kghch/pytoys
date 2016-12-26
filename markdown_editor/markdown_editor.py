@@ -55,7 +55,8 @@ class PreviewHandler(tornado.web.RequestHandler):
         unicode_raw_text = unicode(raw_text, "utf-8")
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
         html_text = md.reset().convert(unicode_raw_text)
-
+        
+        ''' 
         # for codes
         html_text = html_text.replace(u'class="codehilite"', code_style)
 
@@ -75,6 +76,7 @@ class PreviewHandler(tornado.web.RequestHandler):
         html_text = html_text.replace("<table>", "<table " + table_style + ">")
         html_text = html_text.replace("<td", "<td " + tdh_style)
         html_text = re.sub('<th(\s)+', "<th " + tdh_style, html_text)
+        '''
 
         self.write(html_text)
 

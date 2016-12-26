@@ -16,8 +16,7 @@ function createDoc() {
     type: 'GET',
     url: '/create',
     success: function(data) {
-      $('#raw').val('');
-      $('#mirror').html('');
+      myCodeMirror.setValue('');
       $('#doc_id').html(data['fid']);
       document.title = data['title'];
     }
