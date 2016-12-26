@@ -4,51 +4,52 @@
     <meta charset="UTF-8">
     <title>{{ title }}</title>
     <script src="{{static_url('lib/js/jquery.min.js')}}" type='text/javascript'></script>
-    <script src="{{static_url('lib/js/bootstrap.min.js')}}" type='text/javascript'></script>
+    <script src="{{static_url('lib/js/semantic.min.js')}}" type='text/javascript'></script>
     <script src="{{static_url('main.js')}}" type='text/javascript'></script>
-    <script src="{{static_url('lib/js/jquery.dataTables.min.js')}}" type='text/javascript'></script>
-    <script src="{{static_url('lib/js/bootstrap.dataTables.min.js')}}" type='text/javascript'></script>
     <script src="{{static_url('lib/js/codemirror.js')}}" type='text/javascript'></script>
     <script src="{{static_url('lib/js/markdown.js')}}" type='text/javascript'></script>
-    
-    <link href="{{static_url('lib/css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <link href="{{static_url('lib/css/semantic.min.css')}}" rel="stylesheet">
     <link href="{{static_url('lib/css/markdown.css')}}" rel="stylesheet">
     <link href="{{static_url('lib/css/markdown_edit.css')}}" rel="stylesheet">
-    <link href="{{static_url('lib/css/bootstrap.dataTables.min.css')}}" rel="stylesheet">
     <link href="{{static_url('lib/css/codemirror.css')}}" rel="stylesheet">
     <link href="{{static_url('lib/css/neat.css')}}" rel="stylesheet">
     <link href="{{static_url('lib/css/pygments.css')}}" rel="stylesheet">
+    <style>
+      .ui.button {background-color: transparent;}
+      .ui.button:hover {background-color: transparent; border: 1px solid #CACBCD;}
+
+    </style>
 
   </head>
   <body>
-    <p id='doc_id' style="display:none">{{fid}}</p>
-    <div class='header' >
-      <input type='button' id="doc_modal" data-toggle="modal" data-target="#all_doc" value='mydocs' style="float: left">
-      <select id="sync" style="float: left">
-        <option value="y">sync</option>
-        <option value="n" selected="selected">not sync</option>
-      </select>
-      <input type='button' onclick="preview();" value='preview' style='float:right;'/><input type='button' onclick="createDoc();" value='new one' style='float:right;'>
-    </div>
+    <!-- sidebar -->
+    <div class="ui left vertical inverted sidebar labeled icon menu" id="sidebar" style="width: 260px; overflow-y:scroll;"></div>
 
-    <!-- Modal -->
-    <div id="all_doc" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h3 class="modal-title">All my notes</h3></div>
-          <div class="modal-body"><p id="modal_body">Loading.</p></div>
-          <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+    <div class="pusher">
+      <p id='doc_id' style="display:none">{{fid}}</p>
+      <div class='header' style="padding-top: 10px; line-height: 40px;">
+        <button class="ui button" id="doc_modal" onclick="sidebar()" style='float:left;' data-tooltip="文档管理" data-position="right center" data-inverted=""><i class="book icon"></i></button>
+        <div class="ui read-only checkbox">
+          <input type="checkbox" id="sync">
+          <label>sync with Evernote</label>
         </div>
+        <button class="ui button" onclick="preview();" style='float:right;' data-tooltip="预览文档" data-position="bottom left" data-inverted=""><i class="send icon"></i></button>
+        <button class="ui button" onclick="createDoc()" style="float:right;" data-tooltip="创建文档" data-position="bottom left" data-inverted=""><i class="file outline icon"></i></button>
       </div>
-    </div>
+      <div class='show' style='height:100%; padding: 10px; padding-top: 10px;'>
+        <div class='left' class="form-control" style='float: left; width: 46%; position: relative; left: 1%; overflow: hidden; height: 850px; border: ridge;'>
+          <textarea id='raw' style='width: 98%; height: 98%; resize: none; '>{{raw}}</textarea>
+        </div>
+        <div class='right' style='float: left; width: 49%; position: relative; left: 4%; overflow: hidden; height: 850px'>
+          <div id='mirror' class="html-output markdown-body" style="width: 98%; height: 100%; border: ridge; overflow-y: scroll;">{% raw html %}</div>
+        </div>
 
-    <div class='show' style='height:100%; padding: 10px; padding-top: 50px;'>
-      <div class='left' class="form-control" style='float: left; width: 46%; position: relative; left: 1%; overflow: hidden; height: 850px; border: ridge;'>
-        <textarea id='raw' style='width: 98%; height: 98%; resize: none; '>{{raw}}</textarea>
       </div>
-      <div class='right' style='float: left; width: 49%; position: relative; left: 4%; overflow: hidden; height: 850px'>
-        <div id='mirror' class="html-output markdown-body" style="width: 98%; height: 98%; border: ridge; ">{% raw html %}</div>
+      <div id="sync_tooltip" style="position: absolute; right: 5px; bottom: 5px; display: none; background-color:#00B5AD; color: white; padding: 5px;">
+        <i class="spinner icon"></i>正在同步
       </div>
+
     </div>
   </body>
 </html>

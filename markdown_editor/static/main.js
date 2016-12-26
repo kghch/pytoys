@@ -28,19 +28,26 @@ function preview() {
   window.location.replace('/showpreview/' + fid)
 }
 
+function sidebar() {
+    $('.ui.labeled.icon.sidebar').sidebar('toggle');
+}
+
 $(document).ready(function() {
+
   $(document).on('keydown', function(e){
       if(e.ctrlKey && e.which === 83){ // Check for the Ctrl key being pressed, and if the key = [S] (83)
+          $('#sync_tooltip').show();
           raw = myCodeMirror.getValue(),
           html = $('#mirror').html();
           fid = $('#doc_id').html();
-          sync = $("#sync").val();
+          sync = $("#sync").is(':checked');
           $.ajax({
             type: 'POST',
             url: '/save',
             data: JSON.stringify({fid: fid, raw: raw, html: html, sync: sync}),
             contentType: 'json',
             success: function(data) {
+                $('#sync_tooltip').hide();
                 document.title = data['title'];
                 $('#doc_id').html(data['fid']);
             }
@@ -64,8 +71,7 @@ $(document).ready(function() {
       type: 'GET',
       url: '/mydocs',
       success: function(data) {
-        $('#modal_body').html(data);
-        $('#pagination_table').DataTable();
+        $('#sidebar').html(data);
       }
     });
   });
