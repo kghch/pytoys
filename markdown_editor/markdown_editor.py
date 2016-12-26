@@ -55,7 +55,8 @@ class PreviewHandler(tornado.web.RequestHandler):
         unicode_raw_text = unicode(raw_text, "utf-8")
         md = markdown.Markdown(extensions=MARKDOWN_EXT)
         html_text = md.reset().convert(unicode_raw_text)
-
+        
+        ''' 
         # for codes
         html_text = html_text.replace(u'class="codehilite"', code_style)
 
@@ -75,6 +76,7 @@ class PreviewHandler(tornado.web.RequestHandler):
         html_text = html_text.replace("<table>", "<table " + table_style + ">")
         html_text = html_text.replace("<td", "<td " + tdh_style)
         html_text = re.sub('<th(\s)+', "<th " + tdh_style, html_text)
+        '''
 
         self.write(html_text)
 
@@ -100,7 +102,7 @@ class SaveHandler(tornado.web.RequestHandler):
         if doc:
             fid = doc['fid']
             sync = data['sync']
-            if sync == 'y' and doc['note_guid']:
+            if sync and doc['note_guid']:
                 try:
                     note = syncevernote.Note().updateNote(doc['note_guid'], title, data['html'])
                 except:
@@ -109,7 +111,7 @@ class SaveHandler(tornado.web.RequestHandler):
                     db.execute("UPDATE doc set raw=%s, html=%s, title=%s, updated=UTC_TIMESTAMP(), note_guid=%s WHERE fid=%s", \
                                data['raw'], data['html'], title, note.guid, int(fid))
                     print "Update success."
-            elif sync == 'y':
+            elif sync:
                 try:
                     note = syncevernote.Note().createEvernote(title, data['html'])
                 except:
@@ -125,7 +127,7 @@ class SaveHandler(tornado.web.RequestHandler):
         else:
             fid = int(data['fid'])
             sync = data['sync']
-            if sync == 'n':
+            if not sync:
                 db.execute("""INSERT INTO doc(fid, title, raw, html, created, updated) VALUES(%s, %s, %s, %s, UTC_TIMESTAMP(), UTC_TIMESTAMP())""", fid, title, data['raw'], data['html'])
             else:
                 try:

@@ -9,20 +9,22 @@ shadowsocks-python版本中LRUCache的复制。
 [穿越时空](http://www.go-out.cc)自动签到脚本
 
 ## markdown_editor
-markdown编辑器web端。 [Demo](http://138.68.18.245:9876/)
+
+[Demo](http://59.110.139.171:9876/)
+
+markdown编辑器web端。 raw部分的js基本都是模仿[ncornette](https://github.com/ncornette/Python-Markdown-Editor.git )，样式（包括sidebar）仿照马克飞象。
 
 1. 支持存档；
-2. 可以选择同步到印象笔记（目前只是沙箱环境）可以选择同步到印象笔记（目前只是沙箱环境）；
+2. 可以选择同步到印象笔记（目前只是沙箱环境）可以选择同步到印象笔记（目前只是沙箱环境）这部分目前被隐藏；
 
 requirements:
-- tornado(没用到tornado的异步功能)
+- tornado
 - torndb
 - markdown
-- Evernote Python SDK
+- Evernote Python SDK（optional）
 
 TODO：
 - 激活API key，与真正印象笔记同步；
-- 完善异常处理；
 
 ## A chatdemo simplified from tornado chatdemo
 目前看起来works well。
