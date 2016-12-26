@@ -33,7 +33,6 @@ function sidebar() {
 }
 
 $(document).ready(function() {
-
   $(document).on('keydown', function(e){
       if(e.ctrlKey && e.which === 83){ // Check for the Ctrl key being pressed, and if the key = [S] (83)
           $('#sync_tooltip').show();

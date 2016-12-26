@@ -30,18 +30,21 @@
       <p id='doc_id' style="display:none">{{fid}}</p>
       <div class='header' style="padding-top: 10px; line-height: 40px;">
         <button class="ui button" id="doc_modal" onclick="sidebar()" style='float:left;' data-tooltip="文档管理" data-position="right center" data-inverted=""><i class="book icon"></i></button>
-        <div class="ui read-only checkbox">
+        <div class="ui read-only checkbox" style="display:none; float:left;">
           <input type="checkbox" id="sync">
           <label>sync with Evernote</label>
+        </div>
+        <div style="float: left;">
+          markdown editor <a href="https://github.com/kghch"><i class="github icon"></i></a>
         </div>
         <button class="ui button" onclick="preview();" style='float:right;' data-tooltip="预览文档" data-position="bottom left" data-inverted=""><i class="send icon"></i></button>
         <button class="ui button" onclick="createDoc()" style="float:right;" data-tooltip="创建文档" data-position="bottom left" data-inverted=""><i class="file outline icon"></i></button>
       </div>
       <div class='show' style='height:100%; padding: 10px; padding-top: 10px;'>
-        <div class='left' class="form-control" style='float: left; width: 46%; position: relative; left: 1%; overflow: hidden; height: 850px; border: ridge;'>
-          <textarea id='raw' style='width: 98%; height: 98%; resize: none; '>{{raw}}</textarea>
+        <div class='left' class="form-control" style='width: 48%; position: absolute; top: 5%; left: 1%; overflow: hidden; height: 850px; border: ridge;'>
+          <textarea id='raw' style='width: 98%; height: 98%; resize: none; overflow-y: scroll;'>{{raw}}</textarea>
         </div>
-        <div class='right' style='float: left; width: 49%; position: relative; left: 4%; overflow: hidden; height: 850px'>
+        <div class='right' style='width: 48%; position: absolute; top: 5%; right: 1%; overflow: hidden; height: 850px'>
           <div id='mirror' class="html-output markdown-body" style="width: 98%; height: 100%; border: ridge; overflow-y: scroll;">{% raw html %}</div>
         </div>
 
